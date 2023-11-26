@@ -15,20 +15,22 @@ var floorPos_y;
 
 var character = {
   velocity: {
+	
     y: 0
   }
 };
-var GRAVITY = 1;
+var GRAVITY = 0.5;
 var isLeft;
 var isRight;
 var isPlummeting;
 var isFalling;
 var isJumping;
-var collectable;
-var canyon;
+var canyons 
+
 var isGameOver;
 var controls_active ;
 var mountains;
+var collectables 
 
 
 function setup()
@@ -45,18 +47,19 @@ function setup()
   isJumping = false;
   controls_active = true;
 
-  canyon = {
-    x_pos: 200,
-    width: 100,
-    height: floorPos_y + 500
-  };
-  collectable = {
-    x_pos: 400,
-    y_pos: floorPos_y - 30 ,
-    size: 50,
-    isFound : false
-  };
-  isOverCanyon = false;
+  canyons = [
+  {x_pos: 1000, width: 50, height: floorPos_y + 500},
+  {x_pos: 200, width: 100, height: floorPos_y + 500},
+  {x_pos: 700, width: 50, height: floorPos_y + 500},
+  // Add more canyons as needed
+];
+	collectables= [
+  {x_pos: 600, y_pos: floorPos_y - 30, size: 50, isFound: false},
+  {x_pos: 800, y_pos: floorPos_y - 30, size: 50, isFound: false},
+  {x_pos: 1000, y_pos: floorPos_y - 30, size: 50, isFound: false},
+  // Add more collectables as needed
+];
+  isOvercanyons = false;
   isGameOver = false;
 
 	mountains  = [
@@ -73,6 +76,9 @@ trees = [
   // Add more trees as needed
 	];
 }
+
+
+
 
 function draw()
 {
@@ -93,27 +99,26 @@ function draw()
     isFalling = false;
   }
 
-  if(dist(gameChar_x, gameChar_y, collectable.x_pos, collectable.y_pos) < 50) {
-    collectable.isFound = true;
-  }
-
-  if(collectable.isFound == false) {
-    fill(255, 215, 0); //yellow color for the collectible
-    ellipse(collectable.x_pos, collectable.y_pos , collectable.size, collectable.size );
-  }
-
   
-  //draw the canyon
-  	drawcanyon();
+ 
+  
+  //draw the canyons
+  	drawcanyons();
 	drawMountains();
 	drawClouds();
 	drawTrees();
-
-  if (gameChar_x > canyon.x_pos && gameChar_x < canyon.x_pos + canyon.width && gameChar_y < floorPos_y) {
-    isOverCanyon = true;
+	
+  for(let i = 0; i < collectables.length; i++) {
+    drawcollectables(collectables[i]);
+    checkcollectables(collectables[i]);
   }
+  for(let i = 0; i < canyons.length; i++) {
+    drawcanyons(canyons[i]);
+    checkcanyons(canyons[i]);
+  }
+	
   if (gameChar_y < floorPos_y) {
-    if (isOverCanyon) {
+    if (isOvercanyons) {
       isPlummeting = true;
     } else {
       gameChar_y += 5; // adjust the value to make the character fall at the speed you want
@@ -130,12 +135,12 @@ function draw()
 	}
 	
 	
-	// check if the character is on or above the canyon
-	if (gameChar_x > canyon.x_pos && gameChar_x < canyon.x_pos + canyon.width) {
+	// check if the character is on or above the canyons
+	if (gameChar_x > canyons.x_pos && gameChar_x < canyons.x_pos + canyons.width) {
 	if (gameChar_y >= floorPos_y) {
-	  // if the character is on the floor, check if they are over the canyon
-	  if (gameChar_x - canyon.x_pos < 20 || canyon.x_pos + canyon.width - gameChar_x < 20) {
-		// if the character is over the canyon, set the plummeting flag to true
+	  // if the character is on the floor, check if they are over the canyons
+	  if (gameChar_x - canyons.x_pos < 20 || canyons.x_pos + canyons.width - gameChar_x < 20) {
+		// if the character is over the canyons, set the plummeting flag to true
 		isPlummeting = true;
 	  }
 	} 
@@ -143,7 +148,7 @@ function draw()
 	  // if the character is in the air, set the plummeting flag to true
 	  isPlummeting = true;
 	}
-	if (gameChar_y >= height - 50 && gameChar_x >= canyon.x_pos && gameChar_x <= canyon.x_pos + canyon.width) {
+	if (gameChar_y >= height - 50 && gameChar_x >= canyons.x_pos && gameChar_x <= canyons.x_pos + canyons.width) {
         fill(0);
         textSize(32);
         text("Game over!", 100, height / 2);
@@ -252,8 +257,8 @@ function draw()
 		isJumping = false;
 	}
 	
-    // check if the character has successfully jumped over the canyon
-    if(gameChar_x > canyon.x_pos && gameChar_x < canyon.x_pos + canyon.width)
+    // check if the character has successfully jumped over the canyons
+    if(gameChar_x > canyons.x_pos && gameChar_x < canyons.x_pos + canyons.width)
     {
         if(gameChar_y >= floorPos_y && gameChar_y < floorPos_y + 10)
         {
@@ -266,7 +271,7 @@ function draw()
         }
         else if(gameChar_y < floorPos_y && gameChar_y > floorPos_y - 100)
         {
-            if(gameChar_x - canyon.x_pos > 20 && canyon.x_pos + canyon.width - gameChar_x > 20)
+            if(gameChar_x - canyons.x_pos > 20 && canyons.x_pos + canyons.width - gameChar_x > 20)
             {
                 isJumping = true;
                 gameChar_y -= 5;
@@ -276,90 +281,76 @@ function draw()
     
 }
 
+function keyPressed() {
+    console.log("keyPressed: " + key);
+    console.log("keyPressed: " + keyCode);
 
-function keyPressed()
-{
-	// if statements to control the animation of the character when
-	// keys are pressed.
-	
-
-	//open up the console to see how these work
-	console.log("keyPressed: " + key);
-	console.log("keyPressed: " + keyCode);
-	
-	if(keyCode == 37)
-		{
-			console.log ("left arrow");
-			isLeft = true;
+    if (keyCode === 65) { // 'a' key
+        console.log("left key");
+        isLeft = true;
+    } else if (keyCode === 68) { // 'd' key
+        console.log("right key");
+        isRight = true;
+    } else if (keyCode === 32) { // spacebar
+        if (!isFalling && !isPlummeting) {
+            character.position.y -= 500;  // Adjust this value as needed
+            isJumping = true;
+        }
 		
-		}
-	else if (keyCode == 39)
-		{
-			console.log("right arrow");
-			isRight = true;
-		}
+    }
+
+    if (isPlummeting) {
+        character.position.y += character.velocity.y;
+        character.velocity.y += GRAVITY;
+        if (character.position.y > height) {
+            noLoop();
+            console.log("Game over");
+        }
+    } else {
+        if (keyCode === 65) { // 'a' key
+            character.isLeft();
+        } else if (keyCode === 68) { // 'd' key
+            isRight();
+        }
+    }
 }
 
-function keyReleased()
-{
-	// if statements to control the animation of the character when
-	// keys are released.
+function keyReleased() {
+    console.log("keyReleased: " + key);
+    console.log("keyReleased: " + keyCode);
 
-	console.log("keyReleased: " + key);
-	console.log("keyReleased: " + keyCode);
-
-	if (keyCode === 32 && !isFalling) {
-		gameChar_y -= 100;
-		jumpSound.play();
-	  }
-	
-	else if(keyCode == 37)
-		{
-			console.log ("left arrow");
-			isLeft = false;
-		
-		}
-	else if (keyCode == 39)
-		{
-			console.log("right arrow");
-			isRight = false;
-		}
-		function keyPressed() {
-			if (keyCode === 32) { // spacebar
-			  if (!isPlummeting && character.position.y == height - 50) {
-				character.jump();
-			  }
-			}
-			
-			// Code to handle falling down the canyon
-			if (isPlummeting) {
-			  character.position.y += character.velocity.y;
-			  character.velocity.y += GRAVITY;
-			  if (character.position.y > height) {
-				noLoop();
-				console.log("Game over");
-			  }
-			  
-			} else {
-			  // Code to handle moving left and right
-			  if (keyCode === LEFT_ARROW) {
-				character.moveLeft();
-			  } else if (keyCode === RIGHT_ARROW) {
-				character.moveRight();
-			  }
-			}
-		  }
-	
-		  
+    if (keyCode === 32 && !isFalling) {
+        gameChar_y -= 100;
+    } else if (keyCode === 65) { // 'a' key
+        console.log("left key");
+        isLeft = false;
+    } else if (keyCode === 68) { // 'd' key
+        console.log("right key");
+        isRight = false;
+    }
 }
 
-	function drawCollectible() {
-	  if (!collectable.isFound) {
-		fill(255, 223, 0); // Gold color
-		ellipse(collectable.x_pos, collectable.y_pos, collectable.size, collectable.size);
+
+
+	function drawcollectables(t_collectables) {
+	  if(t_collectables.isFound == false) {
+    fill(255, 215, 0); //yellow color for the collectible
+    ellipse(t_collectables.x_pos, t_collectables.y_pos , t_collectables.size);
+    fill(255,0,255);
+    stroke(255);
+    strokeWeight(1);
+    quad( t_collectables.x_pos -5, t_collectables.y_pos -40,
+          t_collectables.x_pos -10, t_collectables.y_pos -55,
+          t_collectables.x_pos +10, t_collectables.y_pos -55,
+          t_collectables.x_pos +5, t_collectables.y_pos -40);
 	  }
+
 	}
-
+function checkcollectables(t_collectables) {
+  if (dist(gameChar_x, gameChar_y, t_collectables.x_pos, t_collectables.y_pos) < 50) {
+    t_collectables.isFound = true;
+  }
+}
 
 	function drawClouds() {
 	  // This is a simple cloud drawing function. You might want to customize it.
@@ -373,41 +364,52 @@ function keyReleased()
 	}
 
 	function drawMountains() {
-		for(let i = 0; i < mountains.length; i++) {
-	  fill(160, 160, 160);
-	  triangle(mountains[i].x_pos, floorPos_y, 
-			   mountains[i].x_pos + mountains[i].width, floorPos_y,
-			   mountains[i].x_pos + mountains[i].width / 2, floorPos_y - mountains[i].height);
-		}
-	  }
+  for(let i = 0; i < mountains.length; i++) {
+    fill(160, 160, 160);
+    triangle(mountains[i].x_pos, floorPos_y, 
+             mountains[i].x_pos + mountains[i].width * 2, // Increase the width of the mountains
+             floorPos_y,
+             mountains[i].x_pos + mountains[i].width * 1.5 / 2, // Adjust the peak of the mountain
+             floorPos_y - mountains[i].height);
+  }
+}
+
 
 	function drawTrees() {
-	  for(let i = 0; i < trees.length; i++) {
-		// Draw the trunk
-		fill(120, 60, 30);
-		rect(trees[i].x_pos, floorPos_y - trees[i].height, 
-			 trees[i].trunkWidth, trees[i].height);
+  for(let i = 0; i < trees.length; i++) {
+    // Draw the trunk
+    fill(120, 60, 30);
+    rect(trees[i].x_pos, floorPos_y - trees[i].height, 
+         trees[i].trunkWidth, trees[i].height);
 
-		// Calculate the size of the triangles
-		let foliageWidth = trees[i].trunkWidth * 7; // Increase the size of the triangles
+    // Calculate the size of the triangles
+    let foliageWidth = trees[i].trunkWidth * 8; // Increase the size of the triangles
 
-		// Draw the lower triangle
-		fill(0, 220, 20);
-		triangle(trees[i].x_pos + trees[i].trunkWidth/2 - foliageWidth/4, floorPos_y - trees[i].height, // Align the triangle with the trunk
-				 trees[i].x_pos + trees[i].trunkWidth/2 + foliageWidth/4, floorPos_y - trees[i].height, 
-				 trees[i].x_pos + trees[i].trunkWidth/2, floorPos_y - trees[i].height - foliageWidth/2);
+    // Draw the lower triangle
+    fill(0, 220, 20);
+    triangle(trees[i].x_pos + trees[i].trunkWidth/2 - foliageWidth/3, floorPos_y - trees[i].height, // Increase the size of the lower triangle
+             trees[i].x_pos + trees[i].trunkWidth/2 + foliageWidth/3, floorPos_y - trees[i].height, 
+             trees[i].x_pos + trees[i].trunkWidth/2, floorPos_y - trees[i].height - foliageWidth/3);
 
-		// Draw the upper triangle
-		triangle(trees[i].x_pos + trees[i].trunkWidth/2 - foliageWidth/8, floorPos_y - trees[i].height - foliageWidth/2, // Align the triangle with the trunk
-				 trees[i].x_pos + trees[i].trunkWidth/2 + foliageWidth/8, floorPos_y - trees[i].height - foliageWidth/2, 
-				 trees[i].x_pos + trees[i].trunkWidth/2, floorPos_y - trees[i].height - foliageWidth);
-	  }
-	}
+    // Draw the upper triangle
+    fill(0, 220, 20);
+    triangle(trees[i].x_pos + trees[i].trunkWidth/2 - foliageWidth/4, floorPos_y - trees[i].height - foliageWidth/4, // Lower the position and increase the size of the upper triangle
+             trees[i].x_pos + trees[i].trunkWidth/2 + foliageWidth/4, floorPos_y - trees[i].height - foliageWidth/4, 
+             trees[i].x_pos + trees[i].trunkWidth/2, floorPos_y - trees[i].height - foliageWidth);
+  }
+}
 
-	function drawcanyon() {
-		fill(80, 50, 20);
-	  rect(canyon.x_pos, 432, canyon.width, 144);
-	  fill(110, 70, 30);
-	  rect(canyon.x_pos + canyon.width / 2 - 25, 432, 50, 144);}
+	function drawcanyons() {
+  for(let i = 0; i < canyons.length; i++) {
+    fill(80, 50, 20);
+    rect(canyons[i].x_pos, 432, canyons[i].width, 144);
+    fill(110, 70, 30);
+    rect(canyons[i].x_pos + canyons[i].width / 2 - 25, 432, 50, 144);
+  }
+}
 
-
+function checkcanyons(t_canyons) {
+  if (gameChar_x > t_canyons.x_pos && gameChar_x < t_canyons.x_pos + t_canyons.width && gameChar_y >= floorPos_y) {
+    isPlummeting = true;
+  }
+}
